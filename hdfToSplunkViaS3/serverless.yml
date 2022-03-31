@@ -20,8 +20,8 @@ functions:
           # existing: true
     # role:
     #   Fn::GetAtt: ["existingS3LambdaExecutionRole", "Arn"]
-    # environment:
-    #   MY_STATE_MACHINE_ARN: ${self:resources.Outputs.MyStateMachine.Value} 
+    environment:
+      MY_STATE_MACHINE_ARN: ${self:resources.Outputs.MyStateMachine.Value} 
 
 stepFunctions:
   stateMachines:
@@ -32,11 +32,12 @@ stepFunctions:
         Comment: "Workflow initiated"
         StartAt: hdfToSplunkFunctionExecution
         States:
-          hdfToSplunkFunctionExecution:
-            Type: Task
-            Resource:
-              Fn::GetAtt: [hello, Arn]
-            End: true
+        
+          # hdfToSplunkFunctionExecution:
+          #   Type: Task
+          #   Resource:
+          #     Fn::GetAtt: [hello, Arn]
+          #   End: true
 
 resources:
   Resources:
