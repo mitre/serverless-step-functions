@@ -1,4 +1,4 @@
-service: s3buckettosplunk
+service: hdfToSplunkViaS3
 
 frameworkVersion: '3'
 
@@ -13,8 +13,15 @@ provider:
 functions:
   hello:
     handler: handler.hello
-#    NOTE: Please make sure to change your handler code to work with those events
-#      - s3: ${env:BUCKET}
+    events:
+      - s3:
+          bucket: sls-attempt-one # ${env:BUCKET}
+          event: s3:ObjectCreated:*
+          # existing: true
+    # role:
+    #   Fn::GetAtt: ["existingS3LambdaExecutionRole", "Arn"]
+    # environment:
+    #   MY_STATE_MACHINE_ARN: ${self:resources.Outputs.MyStateMachine.Value} 
 
 stepFunctions:
   stateMachines:
@@ -47,9 +54,22 @@ resources:
                 - states.amazonaws.com
             Action:
               - sts:AssumeRole
+    # existingS3LambdaExecutionRole:
+    #   Type: AWS::IAM::Role
+    #   Properties:
+    #     RoleName: existingS3Role
+    #     Path: ${env:IAM_ROLE_PATH}
+    #     PermissionsBoundary: ${env:IAM_ROLE_BOUNDARY}
+    #     AssumeRolePolicyDocument:
+    #       Statement:
+    #       - Effect: Allow
+    #         Principal:
+    #           Service:
+    #             - states.amazonaws.com
+    #         Action:
+    #           - sts:AssumeRole
 
     # call function to load/glue file from event
-    # 
 
 plugins:
   - serverless-step-functions
@@ -57,29 +77,11 @@ plugins:
 
 ## SNIPPETS
 
-# you can add statements to the Lambda function's IAM Role here
-#  iam:
-#    role:
-#      statements:
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:ListBucket"
-#          Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#        - Effect: "Allow"
-#          Action:
-#            - "s3:PutObject"
-#          Resource:
-#            Fn::Join:
-#              - ""
-#              - - "arn:aws:s3:::"
-#                - "Ref" : "ServerlessDeploymentBucket"
-#                - "/*"
-
-# you can define service wide environment variables here
+# Define service wide environment variables here
 #  environment:
 #    variable1: value1
 
-#    Define function environment variables here
+# Define function environment variables here
 #    environment:
 #      variable2: value2
 
