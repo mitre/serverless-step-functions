@@ -126,9 +126,3 @@ plugins:
 #           existing: true
 #     role:
 #       Fn::GetAtt: ["existingS3LambdaExecutionRole", "Arn"]
-
-
-
-
-# TODO:
-# - Figure out a way to give permissions to lambda to execute stepFunctions.
