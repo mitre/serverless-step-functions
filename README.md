@@ -1,5 +1,8 @@
 # (WIP) serverless-step-functions
 
+## hdfToSplunkViaS3 Checklist
+[] Figure out a way to give permissions to lambda to execute stepFunctions.
+
 ## Contributing, Issues and Support
 
 ### Contributing
