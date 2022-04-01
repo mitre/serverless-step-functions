@@ -1,7 +1,7 @@
 'use strict';
 
 const aws = require('aws-sdk')
-const my_state_machine_arn = os.environ['MY_STATE_MACHINE_ARN']
+const my_state_machine_arn = proces.env.STATE_MACHINE_ARN
 
 // module.exports.hello = function main(event, context, callback) {
 //   const stepFunctions = new aws.StepFunctions()

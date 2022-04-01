@@ -9,30 +9,31 @@ provider:
     role:
       path: ${env:IAM_ROLE_PATH}
       permissionsBoundary: ${env:IAM_ROLE_BOUNDARY}
+  environment: # Was in functions before
+    STATE_MACHINE_ARN: ${self:resources.Outputs.hdfToSplunkViaS3Workflow.Value}
 
 functions:
   hello:
     handler: handler.hello
     events:
       - s3:
-          bucket: sls-attempt-one # ${env:BUCKET}
+          bucket: sls-attempt-one
           event: s3:ObjectCreated:*
-          # existing: true
-    # role:
-    #   Fn::GetAtt: ["existingS3LambdaExecutionRole", "Arn"]
-    environment:
-      MY_STATE_MACHINE_ARN: ${self:resources.Outputs.MyStateMachine.Value} 
 
 stepFunctions:
   stateMachines:
     hdfToSplunkViaS3Workflow:
+      name: hdfToSplunkViaS3Workflow
       role:
         Fn::GetAtt: ["StateMachineRole", "Arn"]
       definition:
         Comment: "Workflow initiated"
-        StartAt: hdfToSplunkFunctionExecution
+        StartAt: ValidateImage
         States:
-        
+          ValidateImage:
+            Type: Pass
+            Result: "Completed"
+            End: true
           # hdfToSplunkFunctionExecution:
           #   Type: Task
           #   Resource:
@@ -40,6 +41,11 @@ stepFunctions:
           #   End: true
 
 resources:
+  Outputs:
+    hdfToSplunkViaS3Workflow:
+      Description: The ARN of this state machine
+      Value:
+        Ref: HdfToSplunkViaS3Workflow
   Resources:
     StateMachineRole:
       Type: AWS::IAM::Role
@@ -55,6 +61,7 @@ resources:
                 - states.amazonaws.com
             Action:
               - sts:AssumeRole
+
     # existingS3LambdaExecutionRole:
     #   Type: AWS::IAM::Role
     #   Properties:
@@ -105,3 +112,17 @@ plugins:
 #     NewOutput:
 #       Description: "Description for the output"
 #       Value: "Some output value"
+
+
+# Existing Bucket approach (enhancement)
+
+# functions:
+#   hello:
+#     handler: handler.hello
+#     events:
+#       - s3:
+#           bucket: ${env:BUCKET}
+#           event: s3:ObjectCreated:*
+#           existing: true
+#     role:
+#       Fn::GetAtt: ["existingS3LambdaExecutionRole", "Arn"]
