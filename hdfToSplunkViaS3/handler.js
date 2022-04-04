@@ -11,6 +11,37 @@ const my_state_machine_arn = process.env.STATE_MACHINE_ARN
 //     };
 //     }
 
+
+// StepFunctions example code
+// module.exports.start = (event, context, callback) => {
+//   const stateMachineArn = process.env.statemachine_arn;
+//   const params = {
+//     stateMachineArn
+//   }
+
+//   return stepfunctions.startExecution(params).promise().then(() => {
+//     callback(null, `Your statemachine ${stateMachineArn} executed successfully`);
+//   }).catch(error => {
+//     callback(error.message);
+//   });
+// };
+
+// Example 2
+// var stepfunction = require('./stepfunction');
+// var aws = require('aws-sdk');
+// var parser = require('./parser');
+
+// exports.handler = (event, context, callback) => { 
+
+//   var statemachineArn = process.env.statemachine_arn;
+//   var stepfunctions = new aws.StepFunctions();
+  
+//   stepfunction.startExecutionFromS3Event(stepfunctions, parser, statemachineArn , event);
+
+//   callback(null, event);
+    
+// };
+
 module.exports.hello = (event, context, callback) => {
   console.log(event)
   

@@ -2,6 +2,7 @@
 
 ## hdfToSplunkViaS3 Checklist
  - [ ] Figure out a way to give permissions to lambda to execute stepFunctions.
+ - [ ] IAM role: Add resource to refer to the specific stepFunction you create.
 
 ## Contributing, Issues and Support
 

@@ -7,8 +7,29 @@ provider:
   runtime: nodejs12.x
   iam:
     role:
-      path: ${env:IAM_ROLE_PATH}
-      permissionsBoundary: ${env:IAM_ROLE_BOUNDARY}
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "states:StartExecution"
+          Resource:
+            - "*"
+
+          # Resource: # Best practice: Use the specific resource ref of your stepFunction
+          #   Fn::Join:
+          #     - ''
+          #     - - 'arn:aws:s3:::'
+          #       - Ref: ServerlessDeploymentBucket
+        # - Effect: 'Allow' # EXAMPLE
+        #   Action:
+        #     - 's3:PutObject'
+        #   Resource:
+        #     Fn::Join:
+        #       - ''
+        #       - - 'arn:aws:s3:::'
+        #         - Ref: ServerlessDeploymentBucket
+        #         - '/*'
+    #   path: ${env:IAM_ROLE_PATH} # CMS requirement
+    #   permissionsBoundary: ${env:IAM_ROLE_BOUNDARY}
   environment: # Was in functions before
     STATE_MACHINE_ARN: ${self:resources.Outputs.hdfToSplunkViaS3Workflow.Value}
 
@@ -24,15 +45,15 @@ stepFunctions:
   stateMachines:
     hdfToSplunkViaS3Workflow:
       name: hdfToSplunkViaS3Workflow
-      role:
-        Fn::GetAtt: ["StateMachineRole", "Arn"]
+      # role: # Uncomment when you create a custom StateMachine role in resources.Resources
+      #   Fn::GetAtt: ["StateMachineRole", "Arn"]
       definition:
         Comment: "Workflow initiated"
         StartAt: ValidateImage
         States:
           ValidateImage:
             Type: Pass
-            Result: "Completed"
+            Result: "Completed" # S3 contents
             End: true
           # hdfToSplunkFunctionExecution:
           #   Type: Task
@@ -46,21 +67,21 @@ resources:
       Description: The ARN of this state machine
       Value:
         Ref: HdfToSplunkViaS3Workflow
-  Resources:
-    StateMachineRole:
-      Type: AWS::IAM::Role
-      Properties:
-        RoleName: hdfToSplunkViaS3Role
-        Path: ${env:IAM_ROLE_PATH}
-        PermissionsBoundary: ${env:IAM_ROLE_BOUNDARY}
-        AssumeRolePolicyDocument:
-          Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - states.amazonaws.com
-            Action:
-              - sts:AssumeRole
+  # Resources: # CMS requirement if default role needs to be modified | Uncomment role ref under stateMachines
+  #   StateMachineRole:
+  #     Type: AWS::IAM::Role
+  #     Properties:
+  #       RoleName: hdfToSplunkViaS3StateMachineRole
+  #       Path: ${env:IAM_ROLE_PATH} # CMS requirement
+  #       PermissionsBoundary: ${env:IAM_ROLE_BOUNDARY}
+  #       AssumeRolePolicyDocument:
+  #         Statement:
+  #         - Effect: Allow
+  #           Principal:
+  #             Service:
+  #               - states.amazonaws.com
+  #           Action:
+  #             - sts:AssumeRole
 
     # existingS3LambdaExecutionRole:
     #   Type: AWS::IAM::Role
