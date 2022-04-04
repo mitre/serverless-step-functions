@@ -42,7 +42,7 @@ const my_state_machine_arn = process.env.STATE_MACHINE_ARN
     
 // };
 
-module.exports.hello = (event, context, callback) => {
+module.exports.stateMachineTrigger = (event, context, callback) => {
   console.log(event)
   
   const params = { // Takes my env arn
@@ -85,3 +85,14 @@ module.exports.hello = (event, context, callback) => {
 // {
 //   "Records": ["Hello", "World"]
 // }
+
+module.exports.saf = (event, context, callback) => {
+  console.log(JSON.stringify(event));
+  console.log(JSON.stringify(context));
+  // const saf = require('@mitre/saf');
+  // const file = 
+  // const command_string = "view -i summary -i "
+  // saf.run()
+
+  callback(null, 'Completed saf function call.');
+};

@@ -13,29 +13,16 @@ provider:
             - "states:StartExecution"
           Resource:
             - "*"
-
-          # Resource: # Best practice: Use the specific resource ref of your stepFunction
-          #   Fn::Join:
-          #     - ''
-          #     - - 'arn:aws:s3:::'
-          #       - Ref: ServerlessDeploymentBucket
-        # - Effect: 'Allow' # EXAMPLE
-        #   Action:
-        #     - 's3:PutObject'
-        #   Resource:
-        #     Fn::Join:
-        #       - ''
-        #       - - 'arn:aws:s3:::'
-        #         - Ref: ServerlessDeploymentBucket
-        #         - '/*'
     #   path: ${env:IAM_ROLE_PATH} # CMS requirement
     #   permissionsBoundary: ${env:IAM_ROLE_BOUNDARY}
   environment: # Was in functions before
     STATE_MACHINE_ARN: ${self:resources.Outputs.hdfToSplunkViaS3Workflow.Value}
 
 functions:
-  hello:
-    handler: handler.hello
+  saf:
+    handler: handler.saf
+  stateMachineTrigger:
+    handler: handler.stateMachineTrigger
     events:
       - s3:
           bucket: sls-attempt-one
@@ -49,17 +36,18 @@ stepFunctions:
       #   Fn::GetAtt: ["StateMachineRole", "Arn"]
       definition:
         Comment: "Workflow initiated"
-        StartAt: ValidateImage
+        StartAt: ValidatePass
         States:
-          ValidateImage:
+          ValidatePass:
             Type: Pass
             Result: "Completed" # S3 contents
+            Next: RunSaf
+          RunSaf:
+            Type: Task
+            Resource: #"arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-dev-saf"
+              Fn::GetAtt: [saf, Arn]
+            Result: "SAF Executed" # S3 contents
             End: true
-          # hdfToSplunkFunctionExecution:
-          #   Type: Task
-          #   Resource:
-          #     Fn::GetAtt: [hello, Arn]
-          #   End: true
 
 resources:
   Outputs:
