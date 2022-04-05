@@ -1,98 +1,28 @@
 'use strict';
 
 const aws = require('aws-sdk')
-const my_state_machine_arn = process.env.STATE_MACHINE_ARN
-
-// module.exports.hello = function main(event, context, callback) {
-//   const stepFunctions = new aws.StepFunctions()
-//   stepfunctions.startExecution(params, (err, data) => {
-//     if (err) {
-//     console.log(err);
-//     };
-//     }
-
-
-// StepFunctions example code
-// module.exports.start = (event, context, callback) => {
-//   const stateMachineArn = process.env.statemachine_arn;
-//   const params = {
-//     stateMachineArn
-//   }
-
-//   return stepfunctions.startExecution(params).promise().then(() => {
-//     callback(null, `Your statemachine ${stateMachineArn} executed successfully`);
-//   }).catch(error => {
-//     callback(error.message);
-//   });
-// };
-
-// Example 2
-// var stepfunction = require('./stepfunction');
-// var aws = require('aws-sdk');
-// var parser = require('./parser');
-
-// exports.handler = (event, context, callback) => { 
-
-//   var statemachineArn = process.env.statemachine_arn;
-//   var stepfunctions = new aws.StepFunctions();
-  
-//   stepfunction.startExecutionFromS3Event(stepfunctions, parser, statemachineArn , event);
-
-//   callback(null, event);
-    
-// };
-
-module.exports.stateMachineTrigger = (event, context, callback) => {
-  console.log(event)
-  
-  const params = { // Takes my env arn
-    stateMachineArn: my_state_machine_arn,
-    input: JSON.stringify({})
-  };
-
-  const stepfunctions = new aws.StepFunctions()
-  
-  try {
-    event['Records'].forEach(record => {
-      stepfunctions.startExecution(params, (err, data) => {
-        if (err) {
-        console.log(err);
-        const response = {
-            statusCode: 500,
-            body: JSON.stringify({
-            message: 'There was an error'
-            })
-        };
-        callback(null, response);
-        } else {
-        console.log(data);
-        const response = {
-            statusCode: 200,
-            body: JSON.stringify({
-            message: 'Step function worked'
-            })
-        };
-        callback(null, response);
-        }
-      })
-    });
-  } catch (e) {
-    console.log(e)
-  }
-}
-
-// Test event
-// {
-//   "Records": ["Hello", "World"]
-// }
 
 module.exports.saf = (event, context, callback) => {
-  console.log(JSON.stringify(event));
-  console.log(JSON.stringify(context));
-  // const saf = require('@mitre/saf');
-  // const file = 
-  // const command_string = "view -i summary -i "
+  console.log("Here is the event: " + JSON.stringify(event));
+  console.log("Here is the event: " + JSON.stringify(context));
+  const saf = require('@mitre/saf');
   // saf.run()
-
+  const S3= new aws.S3();
+  try {
+    console.log(`Hi from Node.js ${process.version} on Lambda!`);
+    // Converted it to async/await syntax just to simplify.
+    const data = await S3.getObject({Bucket: 'sls-uploads-bucket', Key: '******'}).promise();
+    const fileResponse = {
+      statusCode: 200,
+      body: JSON.stringify(data)
+    }
+  }
+  catch (err) {
+    const fileResponse = {
+      statusCode: err.statusCode || 400,
+      body: err.message || JSON.stringify(err.message)
+    }
+  }
+  const command_string = "view -i summary -i "
   callback(null, 'Completed saf function call.');
 };

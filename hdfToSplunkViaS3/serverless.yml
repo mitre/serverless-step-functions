@@ -1,39 +1,35 @@
 service: hdfToSplunkViaS3
-
 frameworkVersion: '3'
 
 provider:
   name: aws
   runtime: nodejs12.x
-  iam:
-    role:
-      statements:
-        - Effect: "Allow"
-          Action:
-            - "states:StartExecution"
-          Resource:
-            - "*"
-    #   path: ${env:IAM_ROLE_PATH} # CMS requirement
-    #   permissionsBoundary: ${env:IAM_ROLE_BOUNDARY}
-  environment: # Was in functions before
-    STATE_MACHINE_ARN: ${self:resources.Outputs.hdfToSplunkViaS3Workflow.Value}
+  deploymentBucket:
+    name: first-attempt-dev-sls-logs-bucket
 
 functions:
   saf:
     handler: handler.saf
-  stateMachineTrigger:
-    handler: handler.stateMachineTrigger
-    events:
-      - s3:
-          bucket: sls-attempt-one
-          event: s3:ObjectCreated:*
 
 stepFunctions:
   stateMachines:
     hdfToSplunkViaS3Workflow:
       name: hdfToSplunkViaS3Workflow
-      # role: # Uncomment when you create a custom StateMachine role in resources.Resources
-      #   Fn::GetAtt: ["StateMachineRole", "Arn"]
+      events:
+        - cloudwatchEvent:
+            event:
+              source: 
+                - aws.s3
+              detail-type:
+                - AWS API Call via CloudTrail
+              detail:
+                eventSource:
+                  - s3.amazonaws.com
+                eventName:
+                  - PutObject
+                requestParameters:
+                  bucketName:
+                    - sls-uploads-bucket
       definition:
         Comment: "Workflow initiated"
         StartAt: ValidatePass
@@ -44,94 +40,51 @@ stepFunctions:
             Next: RunSaf
           RunSaf:
             Type: Task
-            Resource: #"arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-dev-saf"
+            Resource:
               Fn::GetAtt: [saf, Arn]
-            Result: "SAF Executed" # S3 contents
             End: true
 
 resources:
-  Outputs:
-    hdfToSplunkViaS3Workflow:
-      Description: The ARN of this state machine
-      Value:
-        Ref: HdfToSplunkViaS3Workflow
-  # Resources: # CMS requirement if default role needs to be modified | Uncomment role ref under stateMachines
-  #   StateMachineRole:
-  #     Type: AWS::IAM::Role
-  #     Properties:
-  #       RoleName: hdfToSplunkViaS3StateMachineRole
-  #       Path: ${env:IAM_ROLE_PATH} # CMS requirement
-  #       PermissionsBoundary: ${env:IAM_ROLE_BOUNDARY}
-  #       AssumeRolePolicyDocument:
-  #         Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service:
-  #               - states.amazonaws.com
-  #           Action:
-  #             - sts:AssumeRole
-
-    # existingS3LambdaExecutionRole:
-    #   Type: AWS::IAM::Role
-    #   Properties:
-    #     RoleName: existingS3Role
-    #     Path: ${env:IAM_ROLE_PATH}
-    #     PermissionsBoundary: ${env:IAM_ROLE_BOUNDARY}
-    #     AssumeRolePolicyDocument:
-    #       Statement:
-    #       - Effect: Allow
-    #         Principal:
-    #           Service:
-    #             - states.amazonaws.com
-    #         Action:
-    #           - sts:AssumeRole
-
-    # call function to load/glue file from event
+  Resources:
+    slsCloudTrails3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: sls-uploads-bucket
+    slsCloudTrails3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: first-attempt-dev-sls-logs-bucket
+        PolicyDocument: 
+          Statement:
+            - Action:
+                - 's3:GetBucketAcl'
+              Effect: Allow
+              Principal: '*'
+              Resource:
+                - arn:aws:s3:::first-attempt-dev-sls-logs-bucket
+                - arn:aws:s3:::first-attempt-dev-sls-logs-bucket/*
+            - Action:
+                - 's3:PutObject'
+              Effect: Allow
+              Principal: '*'
+              Resource:
+                - arn:aws:s3:::first-attempt-dev-sls-logs-bucket
+                - arn:aws:s3:::first-attempt-dev-sls-logs-bucket/*
+    slsCloudTrail:
+      DependsOn:
+        - slsCloudTrails3BucketPolicy
+      Type: AWS::CloudTrail::Trail
+      Properties: 
+        TrailName: sls-cloud-trail
+        S3BucketName: first-attempt-dev-sls-logs-bucket
+        IsLogging: true
+        EventSelectors:
+          - DataResources:
+              - Type: AWS::S3::Object
+                Values:
+                  - arn:aws:s3:::sls-uploads-bucket/
+            ReadWriteType: WriteOnly
 
 plugins:
   - serverless-step-functions
-
-
-## SNIPPETS
-
-# Define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# Define function environment variables here
-#    environment:
-#      variable2: value2
-
-# you can add packaging information here
-#package:
-#  patterns:
-#    - '!exclude-me.js'
-#    - '!exclude-me-dir/**'
-#    - include-me.js
-#    - include-me-dir/**
-
-# you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
-#  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
-
-
-# Existing Bucket approach (enhancement)
-
-# functions:
-#   hello:
-#     handler: handler.hello
-#     events:
-#       - s3:
-#           bucket: ${env:BUCKET}
-#           event: s3:ObjectCreated:*
-#           existing: true
-#     role:
-#       Fn::GetAtt: ["existingS3LambdaExecutionRole", "Arn"]
+  - serverless-deployment-bucket
