@@ -11,6 +11,7 @@ provider:
         - Effect: "Allow"
           Action:
             - "states:*"
+            - "s3:*"
           Resource:
             - "*"
     #   path: ${env:IAM_ROLE_PATH} # CMS requirement
@@ -25,7 +26,7 @@ functions:
       - s3:
           bucket: sls-attempt-one-emcrod
           event: s3:ObjectCreated:*
-    environment: # Was in functions before
+    environment:
       STATE_MACHINE_ARN: ${self:resources.Outputs.HdfToSplunkViaS3Workflow.Value}
 
 stepFunctions:
@@ -36,16 +37,11 @@ stepFunctions:
       #   Fn::GetAtt: ["StateMachineRole", "Arn"]
       definition:
         Comment: "Workflow initiated"
-        StartAt: ValidatePass
+        StartAt: RunSaf
         States:
-          ValidatePass:
-            Type: Pass
-            Result: "Completed" # S3 contents
-            Next: RunSaf
           RunSaf:
             Type: Task
             Resource: 
-              # DependsOn:
               Fn::GetAtt: [saf, Arn]
             End: true
 

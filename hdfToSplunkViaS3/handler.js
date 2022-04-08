@@ -1,16 +1,10 @@
 'use strict';
 
 const aws = require('aws-sdk')
+const s3 = new aws.S3({ apiVersion: '2006-03-01' });
+const fs = require('fs');
+const path = require("path");
 const my_state_machine_arn = process.env.STATE_MACHINE_ARN
-
-// module.exports.hello = function main(event, context, callback) {
-//   const stepFunctions = new aws.StepFunctions()
-//   stepfunctions.startExecution(params, (err, data) => {
-//     if (err) {
-//     console.log(err);
-//     };
-//     }
-
 
 // StepFunctions example code
 // module.exports.start = (event, context, callback) => {
@@ -42,18 +36,59 @@ const my_state_machine_arn = process.env.STATE_MACHINE_ARN
     
 // };
 
-module.exports.stateMachineTrigger = (event, context, callback) => {
-  console.log(event)
-  
-  const params = { // Takes my env arn
-    stateMachineArn: my_state_machine_arn,
-    input: JSON.stringify({})
-  };
-
-  const stepfunctions = new aws.StepFunctions()
-  
+async function getObject (bucket, objectKey) {
   try {
-    event['Records'].forEach(record => {
+    const params = {
+      Bucket: bucket,
+      Key: objectKey 
+    }
+
+    const data = await s3.getObject(params).promise();
+
+    return data.Body.toString('utf-8');
+  } catch (e) {
+    throw new Error(`Could not retrieve file from S3: ${e.message}`)
+  }
+}
+
+module.exports.stateMachineTrigger = async (event, context, callback) => {
+  console.log(event)
+  const stepfunctions = new aws.StepFunctions();
+  
+  // try {
+    // Get the object from the event
+    const bucket = event.Records[0].s3.bucket.name;
+    console.log("Bucket " + bucket);
+    
+    const key = decodeURIComponent(
+      event.Records[0].s3.object.key.replace(/\+/g, " ")
+      );
+    console.log("key " + key);
+      
+    // READ PARAMS
+    // const fileParameters = {
+    //   Bucket: bucket,
+    //   Key: key
+    // };
+    
+    // To retrieve you need to use `await getObject()` or `getObject().then()`
+    const myObject = await getObject(bucket, key);
+    console.log("MY OBJECT");
+    console.log(myObject);
+
+      // let { ContentType, Body } = await s3.getObject(fileParameters).promise();
+      // let HDF_FILE = path.resolve('/tmp/', params.Key.toString());
+  // } catch(e) {
+  //   console.log(e);
+  // }
+
+    const params = { // Takes my env arn
+      stateMachineArn: my_state_machine_arn,
+      input: "hello"
+    };
+
+  try {
+    // event['Records'].forEach(record => {
       stepfunctions.startExecution(params, (err, data) => {
         if (err) {
         console.log(err);
@@ -75,7 +110,7 @@ module.exports.stateMachineTrigger = (event, context, callback) => {
         callback(null, response);
         }
       })
-    });
+    // });
   } catch (e) {
     console.log(e)
   }
@@ -87,8 +122,8 @@ module.exports.stateMachineTrigger = (event, context, callback) => {
 // }
 
 module.exports.saf = (event, context, callback) => {
-  console.log(JSON.stringify(event));
-  console.log(JSON.stringify(context));
+  console.log("Event" + JSON.stringify(event));
+  console.log("Context" + JSON.stringify(context));
   // const saf = require('@mitre/saf');
   // const file = 
   // const command_string = "view -i summary -i "
