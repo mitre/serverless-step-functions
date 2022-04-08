@@ -19,7 +19,7 @@ provider:
 
 functions:
   saf:
-    handler: handler.saf
+    handler: saf-lambda.saf
   stateMachineTrigger:
     handler: handler.stateMachineTrigger
     events:

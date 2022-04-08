@@ -1,5 +1,8 @@
 {
   "devDependencies": {
     "serverless-step-functions": "^3.5.1"
+  },
+  "dependencies": {
+    "@mitre/saf": "^1.1.3"
   }
 }
