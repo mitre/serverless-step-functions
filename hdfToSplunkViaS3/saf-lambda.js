@@ -10,7 +10,7 @@ async function getObject (bucket, objectKey) {
   try {
     const params = {
       Bucket: bucket,
-      Key: objectKey 
+      Key: objectKey
     }
 
     const data = await s3.getObject(params).promise();
@@ -23,21 +23,21 @@ async function getObject (bucket, objectKey) {
 
 module.exports.saf = async (event, context, callback) => {
   console.log("Event" + JSON.stringify(event));
-  console.log("Context" + JSON.stringify(context));
   
   const bucket = event.Bucket;
   const key = event.Key;
   
   const s3BucketObjectContents = await getObject(bucket, key);
-  console.log("s3BucketObjectContents");
-  console.log(s3BucketObjectContents);
   
-  // let HDF_FILE = path.resolve('/tmp/', params.Key.toString());
+  let HDF_FILE = path.resolve('/tmp/', params.Key.toString());
+  await fs.writeFileSync(HDF_FILE, s3BucketObjectContents);
   
   const saf = require('@mitre/saf');
-  // const file = 
-  // const command_string = "view -i summary -i "
-  // saf.run()
+  // Explore the saf update to use stdin instead of a file for the contents
+  const command_string = `view summary -i ${HDF_FILE}`;
+  console.log("COMMAND STRING: " + command_string);
+
+  saf.run(command_string.split(' '));
 
   callback(null, 'Completed saf function call.');
 };
