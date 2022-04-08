@@ -29,7 +29,7 @@ module.exports.saf = async (event, context, callback) => {
   
   const s3BucketObjectContents = await getObject(bucket, key);
   
-  let HDF_FILE = path.resolve('/tmp/', params.Key.toString());
+  let HDF_FILE = path.resolve('/tmp/', key);
   await fs.writeFileSync(HDF_FILE, s3BucketObjectContents);
   
   const saf = require('@mitre/saf');
