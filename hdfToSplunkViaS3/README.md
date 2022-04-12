@@ -1,13 +1,30 @@
-# (WIP) serverless-step-functions
+# hdfToSplunkViaS3
 
-## Examples
-- hdfToSplunkViaS3
+## Input and Output Arguments
+### Input Environment Variables
+#### `COMMAND_STRING_INPUT` (Required)
 
-## To Use
-1. Clone this repository
-2. Change directories to the folder with the example you want to use
-3. Set any necessary environment variables written in the example's README file.
-4. Deploy
+Command string to be executed by SAF CLI. The action will run `saf <COMMAND_STRING_INPUT> -i <latest_file_from_bucket>`.
+NOTE: The `COMMAND_STRING_INPUT` should not specify the input file flag because it will be appended to the command after getting the file from the s3 bucket.
+
+Example:
+
+* `convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I hdf`
+* More examples can be found at [SAF CLI Usage](https://github.com/mitre/saf#usage)
+* NOTE: This action does not support `view heimdall`.
+
+### Output
+
+As determined by input command.
+
+## Secrets
+
+This action does not use any secrets at this time.
+
+## Example
+
+See the `serverless.yml` file for details. 
+
 
 ## Contributing, Issues and Support
 

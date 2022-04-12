@@ -4,7 +4,6 @@ const aws = require('aws-sdk')
 const s3 = new aws.S3({ apiVersion: '2006-03-01' });
 const fs = require('fs');
 const path = require("path");
-const my_state_machine_arn = process.env.STATE_MACHINE_ARN
 
 async function getObject (bucket, objectKey) {
   try {
@@ -22,22 +21,40 @@ async function getObject (bucket, objectKey) {
 }
 
 module.exports.saf = async (event, context, callback) => {
-  console.log("Event" + JSON.stringify(event));
-  
   const bucket = event.Bucket;
   const key = event.Key;
   
   const s3BucketObjectContents = await getObject(bucket, key);
   
+  // TODO: Explore the saf update to use stdin instead of a file for the contents
   let HDF_FILE = path.resolve('/tmp/', key);
   await fs.writeFileSync(HDF_FILE, s3BucketObjectContents);
+
+  const command_string_input = process.env.COMMAND_STRING_INPUT;
+  const command_string = `${command_string_input} -i ${HDF_FILE}`;
   
   const saf = require('@mitre/saf');
-  // Explore the saf update to use stdin instead of a file for the contents
-  const command_string = `view summary -i ${HDF_FILE}`;
-  console.log("COMMAND STRING: " + command_string);
 
-  saf.run(command_string.split(' '));
+  if (!command_string) {
+    throw new Error("SAF CLI Command String argument is required.");
+  }
 
-  callback(null, 'Completed saf function call.');
+  const saf_command = command_string.split(' ');
+
+  const allowable_topics = ['convert', 'generate', 'harden', 'scan', 'validate', 'view'];
+  const topic = saf_command[0].split(':')[0];
+
+  if (!allowable_topics.includes(topic)) {
+      throw new Error("The command string did not include one of the allowable topics: " + allowable_topics.join(', ') + ". Please reference the documentation for more details.");
+  }
+
+  const command = saf_command[0].split(':')[1];
+
+  if (topic == "view" & command == "heimdall") {
+      throw new Error("The SAF Action does not support the 'view heimdall' command. Please reference the documentation for other uses.");
+  }
+
+  saf.run(saf_command);
+
+  callback(null, `Completed saf function call with command ${command_string}`);
 };

@@ -14,17 +14,19 @@ provider:
             - "s3:*"
           Resource:
             - "*"
-    #   path: ${env:IAM_ROLE_PATH} # CMS requirement
+    #   path: ${env:IAM_ROLE_PATH} # sponsor requirement
     #   permissionsBoundary: ${env:IAM_ROLE_BOUNDARY}
 
 functions:
   saf:
     handler: saf-lambda.saf
+    environment:
+      COMMAND_STRING_INPUT: ${env:COMMAND_STRING_INPUT}
   stateMachineTrigger:
     handler: handler.stateMachineTrigger
     events:
       - s3:
-          bucket: sls-attempt-one-emcrod
+          bucket: ${env:BUCKET}
           event: s3:ObjectCreated:*
     environment:
       STATE_MACHINE_ARN: ${self:resources.Outputs.HdfToSplunkViaS3Workflow.Value}
@@ -51,7 +53,7 @@ resources:
       Description: The ARN of this state machine
       Value:
         Ref: HdfToSplunkViaS3Workflow
-  # Resources: # CMS requirement if default role needs to be modified | Uncomment role ref under stateMachines
+  # Resources: # sponsor requirement if default role needs to be modified | Uncomment role ref under stateMachines
   #   StateMachineRole:
   #     Type: AWS::IAM::Role
   #     Properties:
@@ -90,14 +92,6 @@ plugins:
 
 
 ## SNIPPETS
-
-# Define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# Define function environment variables here
-#    environment:
-#      variable2: value2
 
 # you can add packaging information here
 #package:
