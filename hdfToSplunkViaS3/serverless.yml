@@ -94,9 +94,12 @@ plugins:
 ## SNIPPETS
 
 # you can add packaging information here
-#package:
-#  patterns:
-#    - '!exclude-me.js'
+package:
+  patterns:
+    - '!.git/**'
+    - '!.aws-sam/**'
+    - '!node_modules/aws-sdk/**'
+    - '!.idea/**'
 #    - '!exclude-me-dir/**'
 #    - include-me.js
 #    - include-me-dir/**
