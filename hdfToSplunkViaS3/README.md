@@ -1,7 +1,7 @@
 # hdfToSplunkViaS3
 This service deploys all the necessary AWS infrastructure components to send an HDF file to a Splunk instance. The Step Functions workflow is triggered by uploading an HDF file to an S3 bucket.
 
-![hdfToSplunkViaS3](https://user-images.githubusercontent.com/11844975/163587603-a3d507c6-b02c-4720-9da9-a1d438db09d5.png)
+![hdfToSplunkViaS3](https://user-images.githubusercontent.com/11844975/163608947-a57bf1f4-710a-496a-aa77-4fc0367c0c05.png)
 
 ## To Use
 ### Pre-requisites
