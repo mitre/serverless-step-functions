@@ -5,23 +5,11 @@ This repository contains example workflows built with the [Serverless Framework]
 - [hdfToSplunkViaS3](https://github.com/mitre/serverless-step-functions/tree/main/hdfToSplunkViaS3#readme)
 
 ## To Use
-1. Install the Serverless Framework
-```
-npm install -g serverless
-```
-2. Clone this repository
-```
-git clone https://github.com/mitre/serverless-step-functions.git
-```
-3. Change directories to the folder with the example you want to use
-```
-cd serverless-step-functions/hdfToSplunkViaS3
-```
-5. Install the dependencies
-```
-npm install
-```
-6. Follow the instructions in the README.md of the selected example to deploy
+1. Install the Serverless Framework: `npm install -g serverless`
+2. Clone this repository: `git clone https://github.com/mitre/serverless-step-functions.git`
+3. Change directories to the folder with the example you want to use. EXAMPLE: `cd serverless-step-functions/hdfToSplunkViaS3`
+4. Install the dependencies: `npm install`
+5. Follow the instructions in the README.md of the selected example to deploy
 
 ---
 
