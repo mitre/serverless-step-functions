@@ -1,32 +1,62 @@
 # hdfToSplunkViaS3
+This service deploys all the necessary AWS infrastructure components to send an HDF file to a Splunk instance. The Step Functions workflow is triggered by uploading an HDF file to an S3 bucket.
 
-## Input and Output Arguments
-### Input Environment Variables
-#### `COMMAND_STRING_INPUT` (Required)
+![hdfToSplunkViaS3](https://user-images.githubusercontent.com/11844975/163587603-a3d507c6-b02c-4720-9da9-a1d438db09d5.png)
 
-Command string to be executed by SAF CLI. The action will run `saf <COMMAND_STRING_INPUT> -i <latest_file_from_bucket>`.
-NOTE: The `COMMAND_STRING_INPUT` should not specify the input file flag because it will be appended to the command after getting the file from the s3 bucket.
+## To Use
+### Pre-requisites
+- AWS CLI must be installed
+- AWS credentials must be available
+- [Base installation](https://github.com/mitre/serverless-step-functions/tree/main#readme) steps must be completed
+### Follow the example-specific instructions below:
+1. Configure your AWS credentials. [Recommended method](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) is to add a profile in the `~/.aws/credentials` file and then export that profile:
+```bash
+export AWS_PROFILE=<your_creds_profile_name>
 
-Example:
+# To ensure your access to AWS, run:
+aws s3 ls
+```
+2. Set the S3 bucket name that you would like to upload your HDF file to
+```bash
+export BUCKET=<bucket-name>
+```
+3. Set your SAF CLI command that you would like to run. Reference: [SAF CLI Usage](https://github.com/mitre/saf#usage)
+```bash
+export COMMAND_STRING_INPUT="convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I your_index_name"
+```
+Note: Do not include the input flag in the command string, ex: "-i hdf_file.json"
 
-* `convert hdf2splunk -H 127.0.0.1 -u admin -p Valid_password! -I hdf`
-* More examples can be found at [SAF CLI Usage](https://github.com/mitre/saf#usage)
-* NOTE: This action does not support `view heimdall`.
+4. Optional step: If your AWS environment requires IAM roles to be created at a specific path with a permissions boundary, export the following variables and uncomment sections of the `serverless.yml` file. Do not uncomment the sections unless required by your AWS environment.
+```bash
+export IAM_ROLE_PATH=</role/path/>
+export IAM_ROLE_BOUNDARY=<arn:aws:iam::${aws:accountId}:policy/permissions-boundary-policy>
+```
+5. Ensure that the environment variables are set properly
+```bash
+env
+```
+6. Deploy the service
+```bash
+sls deploy --verbose
+```
+7. When the service is deployed successfully, log into the AWS console and upload your HDF file into the `bucket-name` that your exported in step 2.
 
-### Output
 
-As determined by input command.
+### Expected Output
+The service will run `saf <COMMAND_STRING_INPUT> -i <latest_file_from_bucket>` and the output will be determined by that command.
+For the `convert hdf2splunk` command, the service will convert the uploaded HDF file and send the data to your Splunk instance.
 
-## Secrets
+---
 
-This action does not use any secrets at this time.
+## Authors
+* Emily Rodriguez - [em-c-rod](https://github.com/em-c-rod)
+* Shivani Karikar - [karikarshivani](https://github.com/karikarshivani)
 
-## Example
+## Special Thanks
+* Aaron Lippold - [aaronlippold](https://github.com/aaronlippold)
+* Yarick Tsagoyko - [yarick](https://github.com/yarick)
 
-See the `serverless.yml` file for details. 
-
-
-## Contributing, Issues and Support
+---
 
 ### Contributing
 
@@ -35,6 +65,8 @@ Please feel free to look through our issues, make a fork and submit PRs and impr
 ### Issues and Support
 
 Please feel free to contact us by **opening an issue** on the issue board, or, at [saf@mitre.org](mailto:saf@mitre.org) should you have any suggestions, questions or issues.
+
+---
 
 ### NOTICE
 
