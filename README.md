@@ -1,15 +1,39 @@
 # (WIP) serverless-step-functions
+This repository contains example workflows built with the [Serverless Framework](https://serverless.com/) to use the [SAF capabilities](https://saf.mitre.org/#/).
 
 ## Examples
-- hdfToSplunkViaS3
+- [hdfToSplunkViaS3](https://github.com/mitre/serverless-step-functions/tree/main/hdfToSplunkViaS3#readme)
 
 ## To Use
-1. Clone this repository
-2. Change directories to the folder with the example you want to use
-3. Set any necessary environment variables written in the example's README file.
-4. Deploy
+1. Install the Serverless Framework
+```
+npm install -g serverless
+```
+2. Clone this repository
+```
+git clone https://github.com/mitre/serverless-step-functions.git
+```
+3. Change directories to the folder with the example you want to use
+```
+cd serverless-step-functions/hdfToSplunkViaS3
+```
+5. Install the dependencies
+```
+npm install
+```
+6. Follow the instructions in the README.md of the selected example to deploy
 
-## Contributing, Issues and Support
+---
+
+## Authors
+* Emily Rodriguez - [em-c-rod](https://github.com/em-c-rod)
+* Shivani Karikar - [karikarshivani](https://github.com/karikarshivani)
+
+## Special Thanks
+* Aaron Lippold - [aaronlippold](https://github.com/aaronlippold)
+* Yarick Tsagoyko - [yarick](https://github.com/yarick)
+
+---
 
 ### Contributing
 
@@ -18,6 +42,8 @@ Please feel free to look through our issues, make a fork and submit PRs and impr
 ### Issues and Support
 
 Please feel free to contact us by **opening an issue** on the issue board, or, at [saf@mitre.org](mailto:saf@mitre.org) should you have any suggestions, questions or issues.
+
+---
 
 ### NOTICE
 
